@@ -34,6 +34,43 @@ release. Many of the members participate in projects of the Apache
 Software Foundation, and we run this project according to the Apache
 Way.
 
+## Scripts
+
+Each tests is called a *script* and consists of:
+
+* One or more stream definitions
+* A query (or possibly several) based on those streams
+* Records to insert into the stream(s) at particular times
+* Expected observations, such as which records should be emitted from
+  the query at particular times
+
+A script is defined using a Java API. Here is a simple example:
+
+```java
+  public Script selectWhere() {
+    return Script.builder()
+        .definitions()
+        .stream("Orders")
+        .timestamp("rowtime").notNull()
+        .integer("orderId").notNull()
+        .varchar("product", 20).notNull()
+        .end() // stream "Orders"
+        .end() // definitions
+        .query("Q", "select orderId from Orders where product = 'milk'")
+        .input()
+        .insert("ORDERS", 0, 100, "beer")
+        .insert("ORDERS", 1, 101, "milk")
+        .end() // input
+        .expect()
+        .row("Q", 101)
+        .end() // expect
+        .build();
+  }
+```
+
+There are more examples in [Basic.java]
+(src/main/java/net/hydromatic/streamsqltck/basic/Basic.java).
+
 ## Get Stream-SQL-TCK
 
 ### From Maven
